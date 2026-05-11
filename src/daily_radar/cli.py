@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -13,6 +13,7 @@ from daily_radar.fetchers.stooq import fetch_stocks
 from daily_radar.notifiers.weixin import read_weixin_token, send_weixin_message
 from daily_radar.pipeline.dedupe import dedupe_items
 from daily_radar.pipeline.render import render_markdown_report, render_weixin_digest
+from daily_radar.pipeline.reliability import filter_fresh_items
 from daily_radar.pipeline.score import score_items, select_top_by_category
 from daily_radar.pipeline.translate import translate_items
 from daily_radar.storage.sqlite import RadarStore
@@ -56,7 +57,8 @@ def run_pipeline(args) -> int:
     db_path = Path(args.db or "data/radar.sqlite")
     store = RadarStore(db_path)
     store.init()
-    items = dedupe_items(score_items(collect_items(cfg), cfg))
+    seen_hours = int(cfg.get("settings", {}).get("seen_ttl_hours", 24))
+    items = filter_fresh_items(dedupe_items(score_items(collect_items(cfg), cfg)), store, seen_hours)
     store.upsert_items(items)
     per_cat = int(cfg.get("settings", {}).get("max_items_per_category", 6))
     grouped = select_top_by_category(items, per_cat)
@@ -68,6 +70,9 @@ def run_pipeline(args) -> int:
     report_path.write_text(markdown, encoding="utf-8")
     digest = render_weixin_digest(grouped, cfg, date)
     sent = _send_if_needed(args, cfg, digest)
+    if sent or not args.send:
+        store.mark_seen_items(items)
+    store.prune_seen_keys((datetime.now(ZoneInfo("UTC")) - timedelta(hours=seen_hours)).isoformat())
     store.save_report(date, markdown, sent=sent)
     print(f"items={len(items)} report={report_path} sent={sent}")
     return 0
@@ -78,12 +83,16 @@ def run_social_alert(args) -> int:
     db_path = Path(args.db or "data/radar.sqlite")
     store = RadarStore(db_path)
     store.init()
-    items = dedupe_items(score_items(collect_social_items(cfg), cfg))
+    seen_hours = int(cfg.get("settings", {}).get("social_seen_ttl_hours", 6))
+    items = filter_fresh_items(dedupe_items(score_items(collect_social_items(cfg), cfg)), store, seen_hours)
     store.upsert_items(items)
     grouped = select_top_by_category(items, int(args.limit))
     date = report_date(cfg)
     digest = render_weixin_digest(grouped, cfg, date, max_chars=1800)
     sent = _send_if_needed(args, cfg, digest)
+    if sent or not args.send:
+        store.mark_seen_items(items)
+    store.prune_seen_keys((datetime.now(ZoneInfo("UTC")) - timedelta(hours=seen_hours)).isoformat())
     print(f"social_items={len(items)} sent={sent}")
     return 0
 

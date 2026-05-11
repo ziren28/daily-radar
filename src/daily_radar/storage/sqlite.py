@@ -41,6 +41,10 @@ class RadarStore:
                   sent INTEGER DEFAULT 0,
                   created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS seen_keys (
+                  key TEXT PRIMARY KEY,
+                  first_seen_at TEXT DEFAULT CURRENT_TIMESTAMP
+                );
                 """
             )
 
@@ -99,3 +103,38 @@ class RadarStore:
         with self.connect() as db:
             rows = db.execute("SELECT * FROM reports ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
         return [dict(r) for r in rows]
+
+    def get_recent_seen_keys(self, since_iso: str) -> set[str]:
+        with self.connect() as db:
+            rows = db.execute("SELECT key FROM seen_keys WHERE first_seen_at >= ?", (since_iso,)).fetchall()
+            item_rows = db.execute("SELECT id, raw_json FROM items WHERE fetched_at >= ?", (since_iso,)).fetchall()
+        keys = {str(r["key"]) for r in rows}
+        for r in item_rows:
+            keys.add(str(r["id"]))
+            try:
+                raw = json.loads(r["raw_json"] or "{}")
+                sig = raw.get("title_signature")
+                if sig:
+                    keys.add(f"sig:{sig}")
+            except Exception:
+                pass
+        return keys
+
+    def mark_seen_items(self, items: list[RadarItem]) -> None:
+        keys: list[str] = []
+        for item in items:
+            if (item.raw or {}).get("always"):
+                continue
+            keys.append(item.id)
+            sig = (item.raw or {}).get("title_signature")
+            if sig:
+                keys.append(f"sig:{sig}")
+        with self.connect() as db:
+            db.executemany(
+                "INSERT OR IGNORE INTO seen_keys(key) VALUES (?)",
+                [(key,) for key in keys if key],
+            )
+
+    def prune_seen_keys(self, since_iso: str) -> None:
+        with self.connect() as db:
+            db.execute("DELETE FROM seen_keys WHERE first_seen_at < ?", (since_iso,))

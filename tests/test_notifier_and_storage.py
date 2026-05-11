@@ -33,7 +33,8 @@ def test_send_weixin_message_posts_json(monkeypatch):
 
     result = send_weixin_message("http://127.0.0.1:18787/send", "tok", "hello")
 
-    assert result == {"ok": True}
+    assert result["ok"] is True
+    assert result["chunks"] == 1
     assert calls[0]["headers"]["Authorization"] == "Bearer tok"
     assert calls[0]["json"] == {"text": "hello"}
 

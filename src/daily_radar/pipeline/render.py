@@ -55,4 +55,6 @@ def render_weixin_digest(grouped: dict[str, list[RadarItem]], cfg: dict, report_
             lines.append(f"- {item.title}")
         lines.append("")
     text = "\n".join(lines).strip()
+    if not text or text == f"【{title}】{report_date}":
+        return f"【{title}】{report_date}\n暂无新内容。"
     return text if len(text) <= max_chars else text[: max_chars - 20] + "\n..."

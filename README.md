@@ -16,6 +16,7 @@
 - SQLite 历史存储
 - systemd timer 每天北京时间 08:30 自动运行
 - social-alert timer 每 10 分钟检查社交媒体
+- 可靠推送：已见内容 TTL 去重、标题签名跨源去重、微信分片发送、失败重试
 
 ## Quick Start
 
@@ -124,6 +125,27 @@ daily-radar social-alert --config configs/sources.yaml --send --weixin-token "$T
 ```
 
 注意：公共 Nitter 实例可能不稳定，挂了就换 `configs/sources.yaml` 里的 `nitter_instances`。
+
+## 从 claude_paipai 学来的稳定性设计
+
+`claude_paipai` 日报稳定的关键点已经迁移过来：
+
+1. **每个 fetcher 自己兜底**：单源失败不影响整体日报。
+2. **定时器 Persistent**：机器睡眠/重启错过触发后，systemd 会补跑。
+3. **seen TTL 去重**：已推过的内容一段时间内不重复刷屏。
+4. **标题签名去重**：不同来源报道同一件事，也只推一次。
+5. **always 内容保留**：行情类内容可每次都推，不受去重影响。
+6. **微信分片发送**：长日报按 1500 字切块，避免微信消息过长失败。
+7. **发送重试**：webhook/网络短暂失败会自动 retry。
+8. **本地翻译缓存/回退**：Google 免费翻译失败时，本地词典兜底。
+
+配置：
+
+```yaml
+settings:
+  seen_ttl_hours: 24
+  social_seen_ttl_hours: 6
+```
 
 ## 安装为定时任务
 
