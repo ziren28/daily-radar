@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Daily Radar social alerts every 10 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+Persistent=true
+RandomizedDelaySec=60s
+Unit=daily-radar-social-alert.service
+
+[Install]
+WantedBy=timers.target

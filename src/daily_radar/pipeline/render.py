@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from daily_radar.models import RadarItem
 
-DEFAULT_ORDER = ["ai", "google", "tech", "us_stock", "tencent", "deals"]
+DEFAULT_ORDER = ["social", "politics", "ai", "google", "tech", "us_stock", "tencent", "deals"]
 
 
 def _category_title(category: str, cfg: dict) -> str:

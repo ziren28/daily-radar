@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Radar social media alert checker
+After=network-online.target weixin-webhook.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/daily-radar
+EnvironmentFile=-/etc/spot-lifecycle.env
+ExecStart=/opt/daily-radar/.venv/bin/daily-radar social-alert --config /opt/daily-radar/configs/sources.yaml --db /opt/daily-radar/data/radar.sqlite --send --limit 3
+TimeoutStartSec=180

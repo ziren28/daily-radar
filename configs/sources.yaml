@@ -23,6 +23,37 @@ categories:
   deals:
     title: 福利羊毛
     keywords: [免费, 限免, 优惠, 折扣, 羊毛, coupon, promo, deal, credit, trial]
+  social:
+    title: 社交媒体实时
+    keywords: [Musk, Elon, Trump, Cathie Wood, ARK, Tesla, SpaceX, Truth Social, X]
+  politics:
+    title: 政治/政策实时
+    keywords: [Trump, Donald Trump, White House, tariff, China, Fed, 特朗普, 关税]
+
+social:
+  # No official API required. Uses public RSS mirrors such as Nitter-compatible instances.
+  # If one instance dies, replace it here.
+  nitter_instances:
+    - https://nitter.net
+  watchlist:
+    - name: Elon Musk / 马斯克
+      handle: elonmusk
+      category: social
+    - name: Cathie Wood / 木头姐
+      handle: CathieDWood
+      category: social
+    - name: ARK Invest / 方舟投资
+      handle: ARKInvest
+      category: social
+    - name: Donald Trump / 特朗普
+      handle: realDonaldTrump
+      category: politics
+    - name: Tesla
+      handle: Tesla
+      category: social
+    - name: SpaceX
+      handle: SpaceX
+      category: social
 
 rss:
   ai:

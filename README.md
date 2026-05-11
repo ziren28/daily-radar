@@ -11,8 +11,11 @@
 - 分类/评分：关键词 + 高价值事件权重
 - 生成 Markdown 完整日报
 - 生成微信短版摘要
+- 本地词典中文化：不依赖翻译 API
+- 社交媒体实时监控：马斯克、木头姐、ARK、特朗普、Tesla、SpaceX
 - SQLite 历史存储
 - systemd timer 每天北京时间 08:30 自动运行
+- social-alert timer 每 10 分钟检查社交媒体
 
 ## Quick Start
 
@@ -43,6 +46,60 @@ http://127.0.0.1:18787/send
 reports/YYYY-MM-DD.md
 data/radar.sqlite
 ```
+
+## 不依赖 API 的中文化
+
+当前不是调用翻译 API，而是用本地词典做中文增强：
+
+```text
+Alphabet -> Alphabet/谷歌母公司
+Elon Musk -> 马斯克
+Cathie Wood -> 木头姐 Cathie Wood
+Trump -> 特朗普
+Tesla -> 特斯拉
+earnings -> 财报
+Fed -> 美联储
+```
+
+好处：稳定、免费、不需要外部 key。后面可以继续扩展 `src/daily_radar/pipeline/zh.py`。
+
+## 社交媒体实时监控
+
+默认通过 Nitter-compatible RSS，不用 X/Twitter 官方 API：
+
+```yaml
+social:
+  nitter_instances:
+    - https://nitter.net
+  watchlist:
+    - name: Elon Musk / 马斯克
+      handle: elonmusk
+      category: social
+    - name: Cathie Wood / 木头姐
+      handle: CathieDWood
+      category: social
+    - name: ARK Invest / 方舟投资
+      handle: ARKInvest
+      category: social
+    - name: Donald Trump / 特朗普
+      handle: realDonaldTrump
+      category: politics
+```
+
+手动检查：
+
+```bash
+daily-radar social-alert --config configs/sources.yaml
+```
+
+推微信：
+
+```bash
+TOKEN=$(sudo awk -F= '/^WEIXIN_WEBHOOK_TOKEN=/{print $2}' /etc/spot-lifecycle.env | tail -1)
+daily-radar social-alert --config configs/sources.yaml --send --weixin-token "$TOKEN"
+```
+
+注意：公共 Nitter 实例可能不稳定，挂了就换 `configs/sources.yaml` 里的 `nitter_instances`。
 
 ## 安装为定时任务
 
