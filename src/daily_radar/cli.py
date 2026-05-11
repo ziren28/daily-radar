@@ -14,8 +14,12 @@ from daily_radar.notifiers.weixin import read_weixin_token, send_weixin_message
 from daily_radar.pipeline.dedupe import dedupe_items
 from daily_radar.pipeline.render import render_markdown_report, render_weixin_digest
 from daily_radar.pipeline.score import score_items, select_top_by_category
-from daily_radar.pipeline.zh import localize_items
+from daily_radar.pipeline.translate import translate_items
 from daily_radar.storage.sqlite import RadarStore
+
+
+def _translate_enabled(cfg: dict) -> bool:
+    return bool(cfg.get("settings", {}).get("translate_enabled", True))
 
 
 def collect_items(cfg: dict):
@@ -24,11 +28,11 @@ def collect_items(cfg: dict):
     items.extend(fetch_rss(cfg))
     items.extend(fetch_google_news(cfg))
     items.extend(fetch_stocks(cfg))
-    return localize_items(items)
+    return translate_items(items, enabled=_translate_enabled(cfg))
 
 
 def collect_social_items(cfg: dict):
-    return localize_items(fetch_social_items(cfg))
+    return translate_items(fetch_social_items(cfg), enabled=_translate_enabled(cfg))
 
 
 def report_date(cfg: dict) -> str:

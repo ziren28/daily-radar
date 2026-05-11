@@ -11,7 +11,7 @@
 - 分类/评分：关键词 + 高价值事件权重
 - 生成 Markdown 完整日报
 - 生成微信短版摘要
-- 本地词典中文化：不依赖翻译 API
+- Google 免费翻译接口中文化：`translate.googleapis.com`，无需 key；失败时回退本地词典
 - 社交媒体实时监控：马斯克、木头姐、ARK、特朗普、Tesla、SpaceX
 - SQLite 历史存储
 - systemd timer 每天北京时间 08:30 自动运行
@@ -47,21 +47,45 @@ reports/YYYY-MM-DD.md
 data/radar.sqlite
 ```
 
-## 不依赖 API 的中文化
+## 中文翻译
 
-当前不是调用翻译 API，而是用本地词典做中文增强：
+默认优先调用 Google 免费翻译接口：
 
 ```text
-Alphabet -> Alphabet/谷歌母公司
+https://translate.googleapis.com/translate_a/single?client=gtx
+```
+
+特点：
+
+```text
+无需 API key
+无需 Google Cloud 项目
+失败时自动回退本地词典
+```
+
+配置：
+
+```yaml
+settings:
+  translate_enabled: true
+  translate_provider: google_free
+```
+
+回退词典在：
+
+```text
+src/daily_radar/pipeline/zh.py
+```
+
+例如：
+
+```text
 Elon Musk -> 马斯克
 Cathie Wood -> 木头姐 Cathie Wood
 Trump -> 特朗普
 Tesla -> 特斯拉
-earnings -> 财报
 Fed -> 美联储
 ```
-
-好处：稳定、免费、不需要外部 key。后面可以继续扩展 `src/daily_radar/pipeline/zh.py`。
 
 ## 社交媒体实时监控
 

@@ -3,6 +3,8 @@ settings:
   report_title: 每日雷达
   max_items_per_category: 6
   weixin_webhook_url: http://127.0.0.1:18787/send
+  translate_enabled: true
+  translate_provider: google_free
 
 categories:
   ai:
