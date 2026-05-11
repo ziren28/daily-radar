@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Radar report generator
+After=network-online.target weixin-webhook.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/daily-radar
+EnvironmentFile=-/etc/spot-lifecycle.env
+ExecStart=/opt/daily-radar/.venv/bin/daily-radar run --config /opt/daily-radar/configs/sources.yaml --db /opt/daily-radar/data/radar.sqlite --report-dir /opt/daily-radar/reports --send
+TimeoutStartSec=600

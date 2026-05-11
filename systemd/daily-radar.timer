@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Daily Radar every morning Beijing time
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 UTC
+Persistent=true
+RandomizedDelaySec=10min
+Unit=daily-radar.service
+
+[Install]
+WantedBy=timers.target
