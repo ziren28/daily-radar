@@ -89,10 +89,12 @@ def run_social_alert(args) -> int:
     items = filter_fresh_items(dedupe_items(score_items(collect_social_items(cfg), cfg)), store, seen_hours)
     store.upsert_items(items)
     grouped = select_top_by_category(items, int(args.limit))
-    date = report_date(cfg)
-    digest = render_weixin_digest(grouped, cfg, date, max_chars=1800)
-    sent = _send_if_needed(args, cfg, digest)
-    if sent or not args.send:
+    sent = False
+    if items:
+        date = report_date(cfg)
+        digest = render_weixin_digest(grouped, cfg, date, max_chars=1800)
+        sent = _send_if_needed(args, cfg, digest)
+    if items and (sent or not args.send):
         store.mark_seen_items(items)
     store.prune_seen_keys((datetime.now(ZoneInfo("UTC")) - timedelta(hours=seen_hours)).isoformat())
     print(f"social_items={len(items)} sent={sent}")
