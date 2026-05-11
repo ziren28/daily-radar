@@ -7,6 +7,7 @@
 - RSS 抓取：OpenAI、Anthropic、Hugging Face、Hacker News、TechCrunch、The Verge
 - Google News RSS：Google/Alphabet、美股、腾讯、福利羊毛关键词
 - Stooq 股票：GOOG、GOOGL、Nasdaq 100
+- 腾讯股价每日估值监控：按“资产垫 + 核心业务 PE”输出买入程度
 - 去重：URL + 标题相似度
 - 分类/评分：关键词 + 高价值事件权重
 - 生成 Markdown 完整日报
@@ -125,6 +126,46 @@ daily-radar social-alert --config configs/sources.yaml --send --weixin-token "$T
 ```
 
 注意：公共 Nitter 实例可能不稳定，挂了就换 `configs/sources.yaml` 里的 `nitter_instances`。
+
+## 腾讯股价买入程度监控
+
+每日跑日报时会附加腾讯估值报告，逻辑按用户给定框架：**不是把底看成现金资产底，而是资产垫 + 核心业务被压到多少倍利润**。
+
+默认基础参数来自 2025 年报/业绩材料附近口径：
+
+```yaml
+tencent_stock:
+  fallback_price_hkd: 464.4
+  fx_hkd_cny: 0.869
+  shares_b: 9.02
+  non_ifrs_profit_rmb_b: 259.6
+  fcf_rmb_b: 182.6
+  net_cash_rmb_b: 107.1
+  listed_investments_rmb_b: 672.7
+  unlisted_investments_rmb_b: 363.1
+```
+
+输出会包含：
+
+```text
+现价
+总市值
+2025 非 IFRS PE
+净现金 + 上市投资 + 50%非上市投资资产垫
+扣资产垫后的核心业务 PE
+买入程度 0-100
+操作建议
+```
+
+买入分层：
+
+| 股价区间 | 买入程度 | 行动 |
+|---|---|---|
+| HK$460+ | 观察 | 不追高，等 430 下方或业绩确认 |
+| HK$430-460 | 小仓/观察 | 可小仓或定投观察 |
+| HK$380-420 | 分批买入 | 价值区，越接近 380 越有吸引力 |
+| HK$320-360 | 强买 | 恐慌底，需要排雷后明显加仓 |
+| HK$300 以下 | 极端机会/需复核基本面 | 先确认游戏、广告、支付生态没坏 |
 
 ## 从 claude_paipai 学来的稳定性设计
 

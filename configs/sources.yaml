@@ -96,3 +96,13 @@ stocks:
     name: Alphabet GOOGL
   - symbol: ^NDQ
     name: Nasdaq 100
+
+tencent_stock:
+  fallback_price_hkd: 464.4
+  fx_hkd_cny: 0.869
+  shares_b: 9.02
+  non_ifrs_profit_rmb_b: 259.6
+  fcf_rmb_b: 182.6
+  net_cash_rmb_b: 107.1
+  listed_investments_rmb_b: 672.7
+  unlisted_investments_rmb_b: 363.1

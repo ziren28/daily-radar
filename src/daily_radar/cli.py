@@ -10,6 +10,7 @@ from daily_radar.fetchers.google_news import fetch_google_news
 from daily_radar.fetchers.rss import fetch_rss
 from daily_radar.fetchers.social import fetch_social_items
 from daily_radar.fetchers.stooq import fetch_stocks
+from daily_radar.fetchers.tencent_stock import fetch_tencent_stock_item
 from daily_radar.notifiers.weixin import read_weixin_token, send_weixin_message
 from daily_radar.pipeline.dedupe import dedupe_items
 from daily_radar.pipeline.render import render_markdown_report, render_weixin_digest
@@ -29,6 +30,7 @@ def collect_items(cfg: dict):
     items.extend(fetch_rss(cfg))
     items.extend(fetch_google_news(cfg))
     items.extend(fetch_stocks(cfg))
+    items.append(fetch_tencent_stock_item(cfg))
     return translate_items(items, enabled=_translate_enabled(cfg))
 
 
